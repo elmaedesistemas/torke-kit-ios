@@ -35,10 +35,17 @@ runs learned from many cars.
 
 TorkeKit stays phone-only: no external receivers or other hardware.
 
-## Phase 4: track tools and docs
-- Christmas tree engine (Pro .400, Sportsman .500), reaction time and red light.
-- Lap timer for circuits: start/finish line, sectors, predicted lap.
-- Geofences for tracks and events.
+## 0.4 · Phase 4: track tools (done)
+- Christmas tree: Pro (.400) and Sportsman (.500) on the phone's screen, reaction time from the
+  stage beam, red light and package (`ChristmasTree`, `Reaction`).
+- Lap timer for road courses: start/finish line, sectors, live delta against the best lap and
+  the predicted lap (`LapTimer`), with crossings interpolated between GPS fixes.
+- Geofences for tracks and events: circles and polygons, and where a run was (`Geofence`,
+  `TorkeRun.check`).
+
+## Next
+- Bracket racing: dial-in, breakout and the winner of a pair.
+- Learning the setup's effect on the 60 ft from many cars' runs.
 
 Not planned for the SDK: leaderboard verification and anti-cheat checks stay on each
 product's server.

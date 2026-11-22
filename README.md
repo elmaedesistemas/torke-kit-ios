@@ -23,11 +23,11 @@ has the same API, the same results and reads the same files.
 
 ## Install
 
-Swift Package Manager: `https://github.com/elmaedesistemas/torke-kit-ios`, from `0.3.0`.
+Swift Package Manager: `https://github.com/elmaedesistemas/torke-kit-ios`, from `0.4.0`.
 Tags have no `v`.
 
 ```swift
-.package(url: "https://github.com/elmaedesistemas/torke-kit-ios", from: "0.3.0")
+.package(url: "https://github.com/elmaedesistemas/torke-kit-ios", from: "0.4.0")
 ```
 
 ## Use
@@ -117,6 +117,27 @@ let change = SetupChange(from: before, to: after)            // to read next to 
 ```
 
 `x` is forward of the rear axle centerline, `y` up from the ground, in inches or centimeters.
+
+### Track tools
+
+A Christmas tree on the screen with the reaction time from the stage beam, a lap timer for road
+courses with sectors and a live delta, and geofences to decide where a run counts.
+
+```swift
+// Christmas tree: schedule the lights when the car is armed, measure the reaction after
+let tree = ChristmasTree.start(type: .pro, stagedAt: ProcessInfo.processInfo.systemUptime)
+tree.lights                                   // amber1…3 and green, on the samples' clock
+result.reaction(on: tree)                     // .time (negative: red light), .isPerfect
+
+// Lap timer: feed it every GPS fix
+let timer = LapTimer(start: TimingLine(a: edgeA, b: edgeB), sectors: [split1, split2])
+for event in timer.process(fix) { /* .started, .sector, .lap */ }
+timer.delta; timer.predictedLap; timer.bestLap
+
+// Geofences: where the run counts
+let strip = Geofence.circle(center: Coordinate(latitude: 9.9412, longitude: -84.2005), radius: 400)
+run.check(strip)                              // startInside, shareInside, allInside
+```
 
 ### Validation against timeslips
 

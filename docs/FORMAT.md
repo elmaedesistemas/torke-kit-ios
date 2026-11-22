@@ -82,3 +82,13 @@ A set of recorded runs with their timeslips, for `torke-validate`:
 
 `Fixtures/validation.json` is the demo run against the timeslip of its exact physics, and
 `validation-expected.json` the errors both SDKs must get.
+
+## Geofences and timing lines (0.4)
+
+```json
+{ "kind": "circle", "name": "La Guácima", "center": { "latitude": 9.9412, "longitude": -84.2005 }, "radius": 400 }
+{ "kind": "polygon", "name": "Paddock", "points": [{ "latitude": 9.94, "longitude": -84.20 }, …] }
+{ "a": { "latitude": 9.9410, "longitude": -84.2010 }, "b": { "latitude": 9.9414, "longitude": -84.2010 }, "name": "Start/finish" }
+```
+
+The same JSON on iOS and Android, so an app can download its tracks from a server.
