@@ -13,6 +13,8 @@ has the same API, the same results and reads the same files.
 > velocidades) a partir del acelerómetro y el GPS. Es el motor de Torke, abierto para quien
 > quiera construir apps de cronometraje, herramientas para pistas o productos para carros.
 
+📖 **Documentation:** [developers.torke.today](https://developers.torke.today), in Spanish: guides, the full API with Swift and Kotlin side by side, and interactive labs for the session, weather and 4-link geometry.
+
 | Product | What it has | Depends on |
 | --- | --- | --- |
 | `TorkeKit` | Engine, `RunSession`, `torke.run` format, `RecordedRunProvider`, `DemoRun` | Foundation only (iOS 17, macOS 14) |
