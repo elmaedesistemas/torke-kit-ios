@@ -212,6 +212,7 @@ public final class RunSession {
 
     @discardableResult
     public func process(gps sample: GPSSample) -> [RunEvent] {
+        trackRate(sample.t)
         if let accuracy = sample.horizontalAccuracy { snapshot.gpsAccuracy = accuracy }
         if let coordinate = sample.coordinate { snapshot.location = coordinate }
         // A fix without speed still moves the location, but nothing else
@@ -245,6 +246,17 @@ public final class RunSession {
         gps.append(sample)
         events.forEach(emit)
         return events
+    }
+
+    /// Fix times of the last few seconds, for ``RunSnapshot/gpsRate``.
+    @ObservationIgnored private var fixTimes: [TimeInterval] = []
+
+    private func trackRate(_ t: TimeInterval) {
+        fixTimes.append(t)
+        fixTimes.removeAll { $0 < t - 5 }
+        if fixTimes.count >= 2, let first = fixTimes.first, t > first {
+            snapshot.gpsRate = Double(fixTimes.count - 1) / (t - first)
+        }
     }
 
     // MARK: - Events
@@ -304,6 +316,7 @@ public final class RunSession {
         fresh.gpsAccuracy = snapshot.gpsAccuracy
         fresh.location = snapshot.location
         fresh.speed = snapshot.speed
+        fresh.gpsRate = snapshot.gpsRate
         snapshot = fresh
     }
 }

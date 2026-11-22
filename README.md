@@ -18,15 +18,16 @@ has the same API, the same results and reads the same files.
 | Product | What it has | Depends on |
 | --- | --- | --- |
 | `TorkeKit` | Engine, `RunSession`, `torke.run` format, `RecordedRunProvider`, `DemoRun` | Foundation only (iOS 17, macOS 14) |
-| `TorkeKitSensors` | `PhoneSensorProvider` (CoreMotion + CoreLocation) | iOS |
+| `TorkeKitSensors` | `PhoneSensorProvider` (CoreMotion + CoreLocation), `PhoneBarometer` | iOS |
+| `torke-validate` | The validation command, for the Mac: `swift run torke-validate` | macOS |
 
 ## Install
 
-Swift Package Manager: `https://github.com/elmaedesistemas/torke-kit-ios`, from `0.2.0`.
+Swift Package Manager: `https://github.com/elmaedesistemas/torke-kit-ios`, from `0.3.0`.
 Tags have no `v`.
 
 ```swift
-.package(url: "https://github.com/elmaedesistemas/torke-kit-ios", from: "0.2.0")
+.package(url: "https://github.com/elmaedesistemas/torke-kit-ios", from: "0.3.0")
 ```
 
 ## Use
@@ -117,6 +118,36 @@ let change = SetupChange(from: before, to: after)            // to read next to 
 
 `x` is forward of the rear axle centerline, `y` up from the ground, in inches or centimeters.
 
+### Validation against timeslips
+
+How far TorkeKit is from the track's timer: each run is analyzed again and compared, mark by mark,
+with its timeslip. Many runs give the bias, the typical error (RMS) and the worst case per mark.
+
+```swift
+let slip = Timeslip(sixtyFeet: 2.12, quarterMile: 12.91, quarterMileSpeed: 114.2, speedUnit: .mph)
+let comparison = run.compare(with: slip)          // measured, reference and error per mark
+let report = ValidationReport([("Run 1", run.analyze(), slip)])
+report.summaries                                  // bias, meanAbsolute, rms, worst, passed
+```
+
+The same from the terminal, with a `torke.validation` JSON listing runs and timeslips
+(see `Fixtures/validation.json`):
+
+```bash
+swift run torke-validate Fixtures/validation.json --runs
+swift run torke-validate my-run.torkerun.json --60ft 2.12 --1/4 12.91 --1/4-speed 114.2 --mph
+```
+
+It exits with 0 when every mark is within its target (60 ft ±0.10 s, 1/4 mile ±0.15 s, trap speed
+±3 km/h), so it fits in CI.
+
+### The phone's GPS and barometer
+
+- `session.snapshot.gpsRate` is how many fixes per second the GPS really gives: 1 on iPhone.
+- `PhoneBarometer().stationPressureHpa()` reads the station pressure for `Weather`.
+
+TorkeKit is phone-only by design: no external receivers or other hardware.
+
 ### Without a car
 
 `RecordedRunProvider.demo()` plays a simulated street car (2 s still, then past the quarter
@@ -127,8 +158,8 @@ iOS and Android.
 
 The tests simulate runs with exact physics and check the targets: ±0.15 s on the 1/4 mile,
 ±0.10 s on 60 ft and ±0.20 s on 0–100 km/h, with a 1 Hz phone GPS, sensor noise and a tilted
-mount. A faster GPS improves the quarter. Validation against dragstrip timeslips is on the
-[roadmap](docs/ROADMAP.md).
+mount. A faster GPS improves the quarter. To check it against real runs, use
+[`torke-validate`](#validation-against-timeslips) with your timeslips.
 
 ## How it works
 

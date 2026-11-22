@@ -1,0 +1,12 @@
+{
+  "errors" : {
+    "eighthMile" : 0.039115545105691041,
+    "eighthMileSpeed" : 0.060907542377549362,
+    "quarterMile" : 0.021751459085066926,
+    "quarterMileSpeed" : 0.27100860681531458,
+    "sixtyFeet" : -0.0063855214289718631,
+    "thousandFeet" : 0.026972106048422262,
+    "threeThirtyFeet" : 0.027218177751323402
+  },
+  "passed" : true
+}

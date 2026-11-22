@@ -1,0 +1,21 @@
+{
+  "format": "torke.validation",
+  "version": 1,
+  "runs": [
+    {
+      "run": "demo-42.torkerun.json",
+      "label": "DemoRun seed 42",
+      "timeslip": {
+        "sixtyFeet": 2.106,
+        "threeThirtyFeet": 5.647,
+        "eighthMile": 8.447,
+        "eighthMileSpeed": 90.56,
+        "thousandFeet": 10.815,
+        "quarterMile": 12.804,
+        "quarterMileSpeed": 114.34,
+        "speedUnit": "mph",
+        "notes": "The exact physics of the DemoRun car: the timeslip a perfect track would print."
+      }
+    }
+  ]
+}

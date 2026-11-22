@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 · 2026-11-22
+
+Validation against timeslips and the most from the phone's GPS. Same results as TorkeKit for Android 0.3.0,
+checked with shared fixtures (`validation.json`, `validation-expected.json`).
+
+- `torke-validate`: `Timeslip`, `RunComparison`, `ValidationReport` (bias, mean absolute error, RMS and
+  worst case per mark, against `ValidationTargets`), `TorkeRun.compare(with:)` and the `torke.validation`
+  JSON (`ValidationSet`). The `torke-validate` executable: `swift run torke-validate --help`.
+- `DragDistance.threeThirtyFeet` (330 ft).
+- `RunSnapshot.gpsRate`: GPS fixes per second over the last 5 s.
+- `TorkeKitSensors`: `PhoneBarometer` for the station pressure.
+
 ## 0.2.0 · 2026-11-21
 
 More measurements, run quality and suspension geometry. Same results as TorkeKit for Android 0.2.0,

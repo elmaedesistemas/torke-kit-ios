@@ -87,6 +87,8 @@ public enum DragDistance {
     public static let rollout = 0.3048
     /// 60 feet.
     public static let sixtyFeet = 18.288
+    /// 330 feet, an intermediate mark on most timeslips.
+    public static let threeThirtyFeet = 100.584
     /// 1/8 mile.
     public static let eighthMile = 201.168
     /// 1/4 mile.

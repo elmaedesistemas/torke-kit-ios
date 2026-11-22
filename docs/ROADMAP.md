@@ -25,15 +25,20 @@
 Left for later: instant center migration through suspension travel, and the setup's effect on
 runs learned from many cars.
 
-## Phase 3: external GPS and validation
-- External GPS over Bluetooth (10–25 Hz receivers).
-- `torke-validate`: compare SDK times with dragstrip timeslips or a reference GPS logger.
+## 0.3 · Phase 3: validation and the most from the phone's GPS (done)
+- `torke-validate`: TorkeKit's times against dragstrip timeslips, as a library (`ValidationReport`)
+  and a command (Kotlin/JVM and Swift). Bias, typical error and worst case per mark, checked
+  against the accuracy targets.
+- `RunSnapshot.gpsRate`: how many fixes per second the phone's GPS really gives.
+- Android: full GNSS tracking (no power-saving gaps) and satellites/signal (`GnssInfo`).
+- The phone's barometer for the station pressure (`PhoneBarometer`).
+
+TorkeKit stays phone-only: no external receivers or other hardware.
 
 ## Phase 4: track tools and docs
 - Christmas tree engine (Pro .400, Sportsman .500), reaction time and red light.
 - Lap timer for circuits: start/finish line, sectors, predicted lap.
 - Geofences for tracks and events.
-- Documentation site in Spanish, English and Portuguese.
 
 Not planned for the SDK: leaderboard verification and anti-cheat checks stay on each
 product's server.

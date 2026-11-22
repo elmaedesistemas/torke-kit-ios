@@ -80,6 +80,9 @@ public struct RunSnapshot: Sendable, Equatable {
     public var result: RunResult?
     /// The result of a rolling or braking run, once ``phase`` is ``RunPhase/finished``.
     public var interval: IntervalResult?
+    /// GPS fixes per second over the last few seconds: 1 on most phones, up to 10 on some.
+    /// Nil until two fixes arrive.
+    public var gpsRate: Double?
 
     public init() {}
 

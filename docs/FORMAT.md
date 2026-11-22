@@ -54,3 +54,31 @@ the same numbers:
 - `braking.torkerun.json` and `rolling.torkerun.json`: intervals.
 - `phase2-expected.json`: density altitude, correction, instant center, anti-squat, best holes,
   quality grade, slope, g-forces and power for those files.
+
+## The `torke.validation` format (0.3)
+
+A set of recorded runs with their timeslips, for `torke-validate`:
+
+```json
+{
+  "format": "torke.validation",
+  "version": 1,
+  "targets": { "sixtyFeet": 0.10, "quarterMile": 0.15, "speedKmh": 3 },
+  "runs": [
+    { "run": "runs/first.torkerun.json", "label": "Run 1",
+      "timeslip": { "sixtyFeet": 2.12, "threeThirtyFeet": 5.71, "eighthMile": 8.55, "eighthMileSpeed": 89.9,
+                    "quarterMile": 12.91, "quarterMileSpeed": 114.2, "speedUnit": "mph", "reactionTime": 0.512 } }
+  ]
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `runs[].run` | Path to a `.torkerun.json`, relative to the set's file. |
+| `runs[].timeslip` | Any of `sixtyFeet`, `threeThirtyFeet`, `eighthMile`, `eighthMileSpeed`, `thousandFeet`, `quarterMile`, `quarterMileSpeed`. Times in seconds from leaving the staging beam. |
+| `speedUnit` | `"kmh"` (default) or `"mph"`, for the speeds of that timeslip. |
+| `reactionTime`, `notes` | Informative, not compared. |
+| `targets` | Optional: the allowed error per mark (seconds, and `speedKmh` for both trap speeds). Defaults: 60 ft 0.10, 330 ft 0.12, 1/8 0.12, 1000 ft 0.15, 1/4 0.15, speed 3. |
+
+`Fixtures/validation.json` is the demo run against the timeslip of its exact physics, and
+`validation-expected.json` the errors both SDKs must get.
