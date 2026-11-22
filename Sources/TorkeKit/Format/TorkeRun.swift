@@ -23,10 +23,17 @@ public struct TorkeRun: Sendable, Codable, Equatable {
     public var motion: [RawMotionSample]
     public var gps: [GPSSample]
     public var result: RunResult?
+    /// The result of a rolling or braking run.
+    public var interval: IntervalResult?
+    /// Weather at the strip, for corrected times.
+    public var weather: Weather?
+    /// The vehicle's suspension when the run was made, to compare setups.
+    public var suspension: SuspensionSetup?
 
     public init(
         recordedAt: Date? = nil, device: String? = nil, app: String? = nil,
-        motion: [RawMotionSample], gps: [GPSSample], result: RunResult? = nil
+        motion: [RawMotionSample], gps: [GPSSample], result: RunResult? = nil,
+        interval: IntervalResult? = nil, weather: Weather? = nil, suspension: SuspensionSetup? = nil
     ) {
         self.format = Self.formatName
         self.version = Self.currentVersion
@@ -36,11 +43,29 @@ public struct TorkeRun: Sendable, Codable, Equatable {
         self.motion = motion
         self.gps = gps
         self.result = result
+        self.interval = interval
+        self.weather = weather
+        self.suspension = suspension
     }
 
     /// Computes the times again from the raw samples.
-    public func analyze() -> RunResult? {
-        RunAnalyzer.analyze(motion: AxisCalibration.forwardAccel(motion), gps: gps)
+    public func analyze(stopDistance: Double = DragDistance.quarterMile + 20) -> RunResult? {
+        RunAnalyzer.analyze(motion: AxisCalibration.forwardAccel(motion), gps: gps, stopDistance: stopDistance)
+    }
+
+    /// A rolling interval, such as 60–130 km/h, from the raw samples.
+    public func rolling(fromKmh: Double = 60, toKmh: Double = 130) -> IntervalResult? {
+        IntervalAnalyzer.rolling(motion: motion, gps: gps, fromKmh: fromKmh, toKmh: toKmh)
+    }
+
+    /// A braking, such as 100–0 km/h, from the raw samples.
+    public func braking(fromKmh: Double = 100) -> IntervalResult? {
+        IntervalAnalyzer.braking(motion: motion, gps: gps, fromKmh: fromKmh)
+    }
+
+    /// How much the run can be trusted. See ``RunQuality``.
+    public func quality() -> RunQuality? {
+        RunQuality.assess(self)
     }
 
     /// Where the run launched, from the GPS fix closest before the launch.

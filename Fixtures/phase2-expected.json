@@ -1,0 +1,23 @@
+{
+  "airDensity" : 1.0286832532373873,
+  "antiSquat" : 59.095669315591692,
+  "bestHoles" : [
+    0,
+    2,
+    0,
+    0
+  ],
+  "bestScore" : 1.0776433592493277,
+  "correctedQuarterMile" : 11.74035524936901,
+  "correctionFactor" : 1.1629332645567838,
+  "densityAltitude" : 1782.507934105073,
+  "hpTrap" : 253.6242186773182,
+  "icHeight" : 60.333333333333336,
+  "icLength" : 515.33333333333337,
+  "launchG" : 0.51507057479237828,
+  "peakWheelHp" : 715.7459859224042,
+  "qualityGrade" : "fair",
+  "rollingTime" : 6.4607413704247039,
+  "slope" : 0.020015324821174924,
+  "thousandFeet" : 10.698889431327373
+}

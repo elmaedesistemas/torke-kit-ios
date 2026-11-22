@@ -1,13 +1,13 @@
 # Roadmap
 
-## 0.1 · Phase 1: the open core (this release)
+## 0.1 · Phase 1: the open core (done)
 - Engine: axis calibration, speed filter (accelerometer + GPS), run analyzer.
 - `RunSession`: standstill, launch and finish detection, live snapshot and events.
 - `torke.run` format, shared by iOS and Android, with a reference fixture.
 - `RecordedRunProvider` and `DemoRun` for tests and demos.
 - Phone sensor providers for iOS (CoreMotion, CoreLocation) and Android (SensorManager, LocationManager).
 
-## Phase 2: more measurements and suspension geometry
+## 0.2 · Phase 2: more measurements and suspension geometry (done)
 - Marks: 0–60 mph, 100–200 km/h, 1000 ft, 1/2 mile, custom distances.
 - Rolling starts (for example 60–130 km/h) and braking (100–0).
 - Launch g and peak g.
@@ -21,6 +21,9 @@
   - Target windows as configuration: the SDK ships no one's values.
   - Measurements in inches or centimeters, as JSON shared by iOS and Android.
   - Link a setup to runs, so a change can be compared with its 60-foot time.
+
+Left for later: instant center migration through suspension travel, and the setup's effect on
+runs learned from many cars.
 
 ## Phase 3: external GPS and validation
 - External GPS over Bluetooth (10–25 Hz receivers).

@@ -39,6 +39,8 @@ public struct GPSSample: Sendable, Codable, Equatable {
     public var longitude: Double?
     /// Horizontal accuracy of the position, in meters.
     public var horizontalAccuracy: Double?
+    /// Height above sea level, in meters. Used to check the slope of the strip.
+    public var altitude: Double?
 
     public init(
         t: TimeInterval,
@@ -46,7 +48,8 @@ public struct GPSSample: Sendable, Codable, Equatable {
         speedAccuracy: Double,
         latitude: Double? = nil,
         longitude: Double? = nil,
-        horizontalAccuracy: Double? = nil
+        horizontalAccuracy: Double? = nil,
+        altitude: Double? = nil
     ) {
         self.t = t
         self.speed = speed
@@ -54,6 +57,7 @@ public struct GPSSample: Sendable, Codable, Equatable {
         self.latitude = latitude
         self.longitude = longitude
         self.horizontalAccuracy = horizontalAccuracy
+        self.altitude = altitude
     }
 
     /// Fixes with `speedAccuracy` of ``noSpeed`` or more carry a position but no speed.
@@ -89,6 +93,14 @@ public enum DragDistance {
     public static let quarterMile = 402.336
     /// 100 km/h in m/s.
     public static let speed100 = 100.0 / 3.6
+    /// 1000 feet, the distance of nitro classes.
+    public static let thousandFeet = 304.8
+    /// 1/2 mile.
+    public static let halfMile = 804.672
+    /// 60 mph in m/s.
+    public static let speed60mph = 60 * 0.44704
+    /// Standard gravity, m/s².
+    public static let g = 9.80665
 }
 
 /// A point of the run's curve, measured from the launch.
@@ -118,12 +130,17 @@ public struct RunResult: Sendable, Codable, Equatable {
     public var topSpeedKmh: Double
     /// Accelerometer bias the filter ended with (m/s²): large values mean a loose mount.
     public var accelBias: Double
+    /// Highest forward acceleration in the first second after the launch, in g (0.1 s average).
+    public var launchG: Double?
+    /// Highest forward acceleration of the run, in g (0.1 s average).
+    public var peakG: Double?
     public var trace: [TracePoint]
 
     public init(
         launchTime: TimeInterval, zeroTo100: TimeInterval?, sixtyFeet: TimeInterval?,
         eighthMile: TimeInterval?, eighthMileKmh: Double?, quarterMile: TimeInterval?,
-        quarterMileKmh: Double?, topSpeedKmh: Double, accelBias: Double, trace: [TracePoint]
+        quarterMileKmh: Double?, topSpeedKmh: Double, accelBias: Double, trace: [TracePoint],
+        launchG: Double? = nil, peakG: Double? = nil
     ) {
         self.launchTime = launchTime
         self.zeroTo100 = zeroTo100
@@ -135,6 +152,8 @@ public struct RunResult: Sendable, Codable, Equatable {
         self.topSpeedKmh = topSpeedKmh
         self.accelBias = accelBias
         self.trace = trace
+        self.launchG = launchG
+        self.peakG = peakG
     }
 
     /// The time shown big: the longest distance the run covered.

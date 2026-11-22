@@ -37,9 +37,20 @@ other, on a server, or in your own tools. File extension: `.torkerun.json`.
 | `motion[].gravity` | Gravity direction, phone frame, `[x, y, z]` (any length). |
 | `gps[].speed`, `speedAccuracy` | m/s, one standard deviation. `speedAccuracy ≥ 50` means the fix has a position but no speed. |
 | `gps[].latitude`, `longitude`, `horizontalAccuracy` | Degrees (WGS 84) and meters, optional. |
-| `result` | Optional. Times in seconds, speeds in km/h. Distance times discount the 1-foot rollout. `trace` may be empty. |
+| `gps[].altitude` | Meters above sea level, optional (0.2). Used for the slope check. |
+| `result` | Optional. Times in seconds, speeds in km/h. Distance times discount the 1-foot rollout. `trace` may be empty. `launchG` and `peakG` (0.2) are optional. |
+| `interval` | Optional (0.2): a rolling or braking result, `{ "kind": "rolling" \| "braking", "fromKmh", "toKmh", "time", "distance", "peakG", "startTime" }`. |
+| `weather` | Optional (0.2): `{ "temperatureC", "humidity", "pressureHpa" }`, station pressure. |
+| `suspension` | Optional (0.2): `{ "kind": "fourLink" \| "ladderBar" \| "torqueArm", "unit": "inches" \| "centimeters", "wheelbase", "cgHeight", "points": { "upperRear": { "x", "y" }, … }, "notes" }`. |
 
-Missing optional fields are left out, never written as `null`.
+Missing optional fields are left out, never written as `null`. Version 0.2 only adds optional
+fields, so the format version stays 1 and 0.1 readers still read 0.2 files.
 
-`Fixtures/demo-42.torkerun.json` is the reference file: both SDKs must read it and compute
-the same times within half a millisecond.
+Reference files in `Fixtures/`, written by TorkeKit for iOS; both SDKs must read them and get
+the same numbers:
+
+- `demo-42.torkerun.json`: the simulated street car, times within half a millisecond.
+- `launch.torkerun.json`: a launch with altitudes, weather and a 4-link.
+- `braking.torkerun.json` and `rolling.torkerun.json`: intervals.
+- `phase2-expected.json`: density altitude, correction, instant center, anti-squat, best holes,
+  quality grade, slope, g-forces and power for those files.

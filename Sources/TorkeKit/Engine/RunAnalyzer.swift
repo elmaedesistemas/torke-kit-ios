@@ -11,7 +11,12 @@ public enum RunAnalyzer {
     static let stillWindow = 1.0
 
     /// Analyzes a recorded run. Returns nil when there is no launch from a standstill.
-    public static func analyze(motion: [MotionSample], gps: [GPSSample]) -> RunResult? {
+    ///
+    /// The trace stops `stopDistance` meters past the launch: raise it to read marks past the
+    /// quarter mile, such as ``DragDistance/halfMile``.
+    public static func analyze(
+        motion: [MotionSample], gps: [GPSSample], stopDistance: Double = DragDistance.quarterMile + 20
+    ) -> RunResult? {
         let motion = motion.sorted { $0.t < $1.t }
         guard let (launchIndex, bias) = findLaunch(motion) else { return nil }
         let launchTime = motion[launchIndex].t
@@ -23,6 +28,7 @@ public enum RunAnalyzer {
         var lastSpeed = 0.0
         var lastT = launchTime
         filter.predict(motion[launchIndex])
+        var g = GForce()
 
         for sample in motion[(launchIndex + 1)...] {
             filter.predict(sample)
@@ -32,10 +38,11 @@ public enum RunAnalyzer {
             }
             let speed = max(filter.speed, 0)
             distance += (speed + lastSpeed) / 2 * (sample.t - lastT)
+            g.add(accel: sample.accel - filter.bias, dt: sample.t - lastT, since: sample.t - launchTime)
             lastSpeed = speed
             lastT = sample.t
             trace.append(TracePoint(t: sample.t - launchTime, speed: speed, distance: distance))
-            if distance > DragDistance.quarterMile + 20 { break }
+            if distance > stopDistance { break }
         }
 
         let rolloutT = time(atDistance: DragDistance.rollout, in: trace)
@@ -53,8 +60,25 @@ public enum RunAnalyzer {
             quarterMileKmh: speed(atDistance: DragDistance.quarterMile, in: trace).map { $0 * 3.6 },
             topSpeedKmh: (trace.map(\.speed).max() ?? 0) * 3.6,
             accelBias: filter.bias,
-            trace: trace
+            trace: trace,
+            launchG: g.launch,
+            peakG: g.peak
         )
+    }
+
+    /// Forward acceleration averaged over 0.1 s, in g: the peak in the first second and overall.
+    struct GForce {
+        var smooth = 0.0
+        var launch: Double?
+        var peak: Double?
+
+        mutating func add(accel: Double, dt: Double, since elapsed: TimeInterval) {
+            guard dt > 0, dt < 0.5 else { return }
+            smooth += (accel - smooth) * min(1, dt / 0.1)
+            let g = smooth / DragDistance.g
+            if elapsed <= 1 { launch = max(launch ?? 0, g) }
+            peak = max(peak ?? 0, g)
+        }
     }
 
     /// Finds the launch: one second still, then sustained acceleration.

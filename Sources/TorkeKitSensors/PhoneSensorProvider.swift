@@ -78,7 +78,8 @@ public final class PhoneSensorProvider: NSObject, RunDataProvider {
             speedAccuracy: fix.speedAccuracy >= 0 ? fix.speedAccuracy : (fix.speed >= 0 ? 1 : GPSSample.noSpeed),
             latitude: valid ? fix.coordinate.latitude : nil,
             longitude: valid ? fix.coordinate.longitude : nil,
-            horizontalAccuracy: valid ? fix.horizontalAccuracy : nil
+            horizontalAccuracy: valid ? fix.horizontalAccuracy : nil,
+            altitude: fix.verticalAccuracy >= 0 ? fix.altitude : nil
         )))
     }
 

@@ -68,11 +68,14 @@ public final class RunSession {
 
     // MARK: - Run
 
-    /// Starts recording. The timer starts by itself when the car launches from a standstill.
-    public func arm() {
+    /// Starts recording. In a standing start the timer starts by itself when the car launches
+    /// from a standstill; rolling and braking runs record from now and finish by themselves
+    /// once the speed range is covered.
+    public func arm(mode: RunMode = .standingStart) {
         clear()
         recordedAt = Date()
-        snapshot.phase = .waitingStill
+        snapshot.mode = mode
+        snapshot.phase = mode == .standingStart ? .waitingStill : .armed
     }
 
     /// Ends the run now and computes the times. Without a launch it fails with
@@ -80,7 +83,12 @@ public final class RunSession {
     @discardableResult
     public func finish() -> RunResult? {
         guard snapshot.phase.isRecording else { return snapshot.result }
-        guard case .running = snapshot.phase, let result = RunAnalyzer.analyze(motion: AxisCalibration.forwardAccel(motion), gps: gps) else {
+        if snapshot.mode != .standingStart {
+            finishInterval()
+            return nil
+        }
+        guard case .running = snapshot.phase,
+              let result = RunAnalyzer.analyze(motion: AxisCalibration.forwardAccel(motion), gps: gps, stopDistance: options.analysisDistance) else {
             fail(.noLaunch)
             return nil
         }
@@ -88,6 +96,18 @@ public final class RunSession {
         snapshot.phase = .finished
         emit(.finished(result))
         return result
+    }
+
+    private func finishInterval() {
+        let result: IntervalResult? = switch snapshot.mode {
+        case let .rolling(from, to): IntervalAnalyzer.rolling(motion: motion, gps: gps, fromKmh: from, toKmh: to)
+        case let .braking(from): IntervalAnalyzer.braking(motion: motion, gps: gps, fromKmh: from)
+        case .standingStart: nil
+        }
+        guard let result else { return fail(.noInterval) }
+        snapshot.interval = result
+        snapshot.phase = .finished
+        emit(.intervalFinished(result))
     }
 
     /// Drops the run and goes back to ``RunPhase/idle``.
@@ -104,7 +124,7 @@ public final class RunSession {
     /// Everything recorded since ``arm()``, ready to save, share or replay with
     /// ``RecordedRunProvider``.
     public func recording(device: String? = nil, app: String? = nil) -> TorkeRun {
-        TorkeRun(recordedAt: recordedAt, device: device, app: app, motion: motion, gps: gps, result: snapshot.result)
+        TorkeRun(recordedAt: recordedAt, device: device, app: app, motion: motion, gps: gps, result: snapshot.result, interval: snapshot.interval)
     }
 
     // MARK: - Samples
@@ -124,6 +144,10 @@ public final class RunSession {
         motion.append(sample)
         var events: [RunEvent] = []
         let o = options
+
+        if snapshot.mode != .standingStart {
+            return processInterval(sample)
+        }
 
         switch snapshot.phase {
         case .waitingStill:
@@ -167,6 +191,25 @@ public final class RunSession {
         return events
     }
 
+    /// Rolling and braking: record from the first sample, finish once the range is covered.
+    private func processInterval(_ sample: RawMotionSample) -> [RunEvent] {
+        if snapshot.phase == .armed { snapshot.phase = .running(start: sample.t) }
+        guard case let .running(start) = snapshot.phase else { return [] }
+        snapshot.elapsed = sample.t - start
+        let kmh = snapshot.speedKmh
+        let done: Bool = switch snapshot.mode {
+        case let .rolling(_, to): kmh >= to + 3
+        case let .braking(from): peakSpeed * 3.6 >= from && kmh < 1.5
+        case .standingStart: false
+        }
+        if done || snapshot.elapsed > max(options.maxDuration, 60) {
+            finish()
+            if let interval = snapshot.interval { return [.intervalFinished(interval)] }
+            return [.failed(.noInterval)]
+        }
+        return []
+    }
+
     @discardableResult
     public func process(gps sample: GPSSample) -> [RunEvent] {
         if let accuracy = sample.horizontalAccuracy { snapshot.gpsAccuracy = accuracy }
@@ -177,6 +220,11 @@ public final class RunSession {
         guard snapshot.phase.isRecording else { return [] }
 
         var events: [RunEvent] = []
+        if snapshot.mode != .standingStart {
+            peakSpeed = max(peakSpeed, sample.speed)
+            gps.append(sample)
+            return []
+        }
         // Rolling before the launch: wait for a standstill again
         if snapshot.phase == .armed, sample.speed >= options.stillSpeed { disarm(&events) }
         if case let .running(start) = snapshot.phase, let last = gps.last {

@@ -22,10 +22,22 @@ public enum RunPhase: Sendable, Equatable {
     }
 }
 
+/// What a run measures.
+public enum RunMode: Sendable, Equatable, Codable {
+    /// From a standstill: 60 ft, 1/8, 1/4, 0–100. The default.
+    case standingStart
+    /// Already moving: from `fromKmh` to `toKmh`, such as 60–130 km/h.
+    case rolling(fromKmh: Double, toKmh: Double)
+    /// From `fromKmh` to a stop, such as 100–0 km/h.
+    case braking(fromKmh: Double)
+}
+
 /// Why a run could not be measured.
 public enum RunFailure: String, Sendable, Codable, Error, Equatable {
     /// The run ended without a launch from a standstill.
     case noLaunch
+    /// A rolling or braking run that did not cover its speed range.
+    case noInterval
     /// The device has no motion sensors (or they are off).
     case noMotionSensors
     /// The app is not allowed to use the location.
@@ -43,6 +55,8 @@ public enum RunEvent: Sendable, Equatable {
     /// A live estimate of a mark, from the GPS alone. The official times come in `finished`.
     case passed(DragMark, elapsed: TimeInterval)
     case finished(RunResult)
+    /// A rolling or braking run is done.
+    case intervalFinished(IntervalResult)
     case failed(RunFailure)
 }
 
@@ -61,8 +75,11 @@ public struct RunSnapshot: Sendable, Equatable {
     public var location: Coordinate?
     /// Where the run launched. Send it to your server to decide where the run counts.
     public var startLocation: Coordinate?
-    /// The official times, once ``phase`` is ``RunPhase/finished``.
+    public var mode: RunMode = .standingStart
+    /// The official times of a standing start, once ``phase`` is ``RunPhase/finished``.
     public var result: RunResult?
+    /// The result of a rolling or braking run, once ``phase`` is ``RunPhase/finished``.
+    public var interval: IntervalResult?
 
     public init() {}
 
@@ -90,6 +107,9 @@ public struct RunSessionOptions: Sendable, Equatable {
     public var backOffRatio: Double = 0.6
     /// …or after this long (seconds).
     public var maxDuration: TimeInterval = 40
+    /// How far past the launch the analysis reads, in meters. Raise it for the 1/2 mile
+    /// (together with `finishDistance`).
+    public var analysisDistance: Double = DragDistance.quarterMile + 20
 
     public init() {}
 }

@@ -18,6 +18,19 @@ public enum AxisCalibration {
         return horizontal.map { MotionSample(t: $0.0, accel: dot($0.1, forward)) }
     }
 
+    /// Like ``forwardAccel(_:)``, but checks the sign against the GPS: if the integrated
+    /// acceleration goes against the GPS speed change, the axis is flipped. Use it when the
+    /// first strong push may be a braking.
+    public static func forwardAccel(_ raw: [RawMotionSample], orientedBy gps: [GPSSample]) -> [MotionSample] {
+        let forward = forwardAccel(raw)
+        let fixes = gps.filter(\.hasSpeed).sorted { $0.t < $1.t }
+        guard let first = fixes.first, let last = fixes.last, abs(last.speed - first.speed) > 2 else { return forward }
+        let integrated = zip(forward, forward.dropFirst())
+            .filter { $0.0.t >= first.t && $0.1.t <= last.t }
+            .reduce(0.0) { $0 + $1.0.accel * ($1.1.t - $1.0.t) }
+        return integrated * (last.speed - first.speed) < 0 ? forward.map { MotionSample(t: $0.t, accel: -$0.accel) } : forward
+    }
+
     /// Horizontal acceleration in any direction (m/s²): detects movement before
     /// "forward" is known.
     public static func horizontalMagnitude(_ s: RawMotionSample) -> Double {
